@@ -1,3 +1,5 @@
+using JWTIssueExample.Concrete;
+using JWTIssueExample.Contracts;
 using JWTIssueExample.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -20,6 +22,7 @@ namespace JWTIssueExample
         public void ConfigureServices(IServiceCollection services)
         {
             services.SetupJwtServices(Configuration);
+            services.AddScoped<IAuthenticationManager, AuthenticationManager>();
             services.AddControllers();
         }
 

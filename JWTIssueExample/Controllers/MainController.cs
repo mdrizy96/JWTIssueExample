@@ -6,6 +6,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using JWTIssueExample.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 
@@ -16,36 +18,18 @@ namespace JWTIssueExample.Controllers
     public class MainController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IAuthenticationManager _authManager;
 
-        public MainController(IConfiguration configuration)
+        public MainController(IConfiguration configuration, IAuthenticationManager authManager)
         {
             _configuration = configuration;
+            _authManager = authManager;
         }
 
         [HttpGet("gettoken")]
-        public Object GetToken()
+        public async Task<IActionResult> GetToken()
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            string key = jwtSettings.GetSection("secret").Value;
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            //Create a List of Claims, Keep claims name short
-            var permClaims = new List<Claim>();
-            permClaims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            permClaims.Add(new Claim("valid", "1"));
-            permClaims.Add(new Claim("userid", "1"));
-            permClaims.Add(new Claim("name", "bilal"));
-
-            //Create Security Token object by giving required parameters
-            var token = new JwtSecurityToken(jwtSettings.GetSection("validIssuer").Value,
-                jwtSettings.GetSection("validAudience").Value,  //Audience
-                permClaims,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("expires").Value)),
-                signingCredentials: credentials);
-            var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
-            return new { data = jwt_token };
+            return Ok(new { Token = await _authManager.CreateToken() });
         }
 
         [HttpPost("getname1")]
