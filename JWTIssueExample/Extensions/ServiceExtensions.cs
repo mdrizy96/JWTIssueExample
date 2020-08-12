@@ -3,17 +3,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace JWTIssueExample.Extensions
 {
     public static class ServiceExtensions
     {
-        public static void SetupJwtServices(this IServiceCollection services)
+        public static void SetupJwtServices(this IServiceCollection services, IConfiguration configuration)
         {
-            string key = "my_secret_key_12345"; //this should be same which is used while creating token
-            var issuer = "http://mysite.com";  //this should be same which is used while creating token
+            var jwtSettings = configuration.GetSection("JwtSettings");
+            string key = jwtSettings.GetSection("secret").Value; // Keep secret in environment for production apps (Environment.GetEnvironmentVariable("SECRET");)
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(opt =>
+                {
+                    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -21,8 +26,9 @@ namespace JWTIssueExample.Extensions
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = issuer,
-                        ValidAudience = issuer,
+                        ValidIssuer = jwtSettings.GetSection("validIssuer").Value,
+                        ValidAudience = jwtSettings.GetSection("validAudience").Value,
+                        ValidateLifetime = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
                     };
 

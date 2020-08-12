@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 
 namespace JWTIssueExample.Controllers
 {
@@ -14,11 +15,18 @@ namespace JWTIssueExample.Controllers
     [ApiController]
     public class MainController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+
+        public MainController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         [HttpGet("gettoken")]
         public Object GetToken()
         {
-            string key = "my_secret_key_12345"; //Secret key which will be used later during validation
-            var issuer = "http://mysite.com";  //normally this will be your site URL
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            string key = jwtSettings.GetSection("secret").Value;
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -31,10 +39,10 @@ namespace JWTIssueExample.Controllers
             permClaims.Add(new Claim("name", "bilal"));
 
             //Create Security Token object by giving required parameters
-            var token = new JwtSecurityToken(issuer, //Issuer
-                issuer,  //Audience
+            var token = new JwtSecurityToken(jwtSettings.GetSection("validIssuer").Value,
+                jwtSettings.GetSection("validAudience").Value,  //Audience
                 permClaims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("expires").Value)),
                 signingCredentials: credentials);
             var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
             return new { data = jwt_token };
