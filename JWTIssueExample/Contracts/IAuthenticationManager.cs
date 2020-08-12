@@ -9,6 +9,6 @@ namespace JWTIssueExample.Contracts
     public interface IAuthenticationManager
     {
         Task<string> CreateToken();
-        Task<bool> ValidateToken(); 
+        bool ValidateToken(string token); 
     }
 }

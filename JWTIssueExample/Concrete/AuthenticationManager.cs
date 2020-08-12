@@ -29,9 +29,33 @@ namespace JWTIssueExample.Concrete
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
         }
 
-        public Task<bool> ValidateToken()
+        public bool ValidateToken(string token)
         {
-            throw new NotImplementedException();
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var mySecret = jwtSettings.GetSection("secret").Value;
+            var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
+
+            var myIssuer = jwtSettings.GetSection("validIssuer").Value;
+            var myAudience = jwtSettings.GetSection("validAudience").Value;
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = myIssuer,
+                    ValidAudience = myAudience,
+                    IssuerSigningKey = mySecurityKey
+                }, out SecurityToken validatedToken);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
         }
 
         private SigningCredentials GetSigningCredentials()
