@@ -3,8 +3,10 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JWTIssueExample.Controllers
 {
@@ -37,5 +39,40 @@ namespace JWTIssueExample.Controllers
             var jwt_token = new JwtSecurityTokenHandler().WriteToken(token);
             return new { data = jwt_token };
         }
+
+        [HttpPost("getname1")]
+        public String GetName1()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                if (User.Identity is ClaimsIdentity identity)
+                {
+                    IEnumerable<Claim> claims = identity.Claims;
+                }
+                return "Valid";
+            }
+            else
+            {
+                return "Invalid";
+            }
+        }
+
+        [Authorize]
+        [HttpPost("getname2")]
+        public Object GetName2()
+        {
+            if (User.Identity is ClaimsIdentity identity)
+            {
+                IEnumerable<Claim> claims = identity.Claims;
+                var name = claims.FirstOrDefault(p => p.Type == "name")?.Value;
+                return new
+                {
+                    data = name
+                };
+
+            }
+            return null;
+        }
     }
+
 }
