@@ -1,15 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using JWTIssueExample.ActionFilters;
 using JWTIssueExample.Contracts;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace JWTIssueExample.Controllers
 {
@@ -61,10 +60,15 @@ namespace JWTIssueExample.Controllers
                 {
                     data = name
                 };
-
             }
             return null;
         }
-    }
 
+        [HttpGet("validatetoken")]
+        [ServiceFilter(typeof(ValidateAccessTokenAttribute))]
+        public async Task<IActionResult> ValidateToken()
+        {
+            return Ok(new { TokenValid = _authManager.ValidateToken(_authManager.GetXApiTokenFromHeader(HttpContext)) });
+        }
+    }
 }

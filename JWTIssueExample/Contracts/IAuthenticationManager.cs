@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
 namespace JWTIssueExample.Contracts
@@ -9,6 +6,9 @@ namespace JWTIssueExample.Contracts
     public interface IAuthenticationManager
     {
         Task<string> CreateToken();
-        bool ValidateToken(string token); 
+
+        bool ValidateToken(string token);
+
+        string GetXApiTokenFromHeader(HttpContext httpContext);
     }
 }

@@ -1,3 +1,4 @@
+using JWTIssueExample.ActionFilters;
 using JWTIssueExample.Concrete;
 using JWTIssueExample.Contracts;
 using JWTIssueExample.Extensions;
@@ -23,6 +24,9 @@ namespace JWTIssueExample
         {
             services.SetupJwtServices(Configuration);
             services.AddScoped<IAuthenticationManager, AuthenticationManager>();
+
+            // Register action filters
+            services.AddScoped<ValidateAccessTokenAttribute>();
             services.AddControllers();
         }
 

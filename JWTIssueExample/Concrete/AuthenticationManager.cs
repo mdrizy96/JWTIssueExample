@@ -1,14 +1,13 @@
-﻿using System;
+﻿using JWTIssueExample.Contracts;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using JWTIssueExample.Contracts;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-
 
 namespace JWTIssueExample.Concrete
 {
@@ -20,12 +19,13 @@ namespace JWTIssueExample.Concrete
         {
             _configuration = configuration;
         }
+
         public async Task<string> CreateToken()
         {
             var signingCredentials = GetSigningCredentials();
             var claims = await GetClaims();
             var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
-            
+
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
         }
 
@@ -58,10 +58,15 @@ namespace JWTIssueExample.Concrete
             return true;
         }
 
+        public string GetXApiTokenFromHeader(HttpContext httpContext)
+        {
+            return httpContext.Items["XApiToken"].ToString();
+        }
+
         private SigningCredentials GetSigningCredentials()
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = Encoding.UTF8.GetBytes(jwtSettings.GetSection("secret").Value); 
+            var key = Encoding.UTF8.GetBytes(jwtSettings.GetSection("secret").Value);
             var secret = new SymmetricSecurityKey(key);
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
@@ -71,8 +76,8 @@ namespace JWTIssueExample.Concrete
             /*var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, _user.UserName)
-            }; 
-            
+            };
+
             var roles = await _userManager.GetRolesAsync(_user);
             foreach (var role in roles)
             {
@@ -89,7 +94,7 @@ namespace JWTIssueExample.Concrete
 
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings"); 
+            var jwtSettings = _configuration.GetSection("JwtSettings");
             var tokenOptions = new JwtSecurityToken(issuer: jwtSettings.GetSection("validIssuer").Value,
                 audience: jwtSettings.GetSection("validAudience").Value,
                 claims: claims,
