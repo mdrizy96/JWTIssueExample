@@ -10,5 +10,7 @@ namespace JWTIssueExample.Contracts
         bool ValidateToken(string token);
 
         string GetXApiTokenFromHeader(HttpContext httpContext);
+
+        string GetClaim(string token, string claimType);
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,6 +62,19 @@ namespace JWTIssueExample.Concrete
         public string GetXApiTokenFromHeader(HttpContext httpContext)
         {
             return httpContext.Items["XApiToken"].ToString();
+        }
+
+        public string GetClaim(string token, string claimType)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            if (tokenHandler.ReadToken(token) is JwtSecurityToken securityToken)
+            {
+                var stringClaimValue = securityToken.Claims.First(claim => claim.Type == claimType).Value;
+                return stringClaimValue;
+            }
+
+            return string.Empty;
         }
 
         private SigningCredentials GetSigningCredentials()
